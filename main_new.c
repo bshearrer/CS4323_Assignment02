@@ -120,7 +120,51 @@ int processCommand(char input[], char *args[], int *inBackground) {
 			printf("%d. %s\n", i + 1, history[i]);
 		}
 	}
-
+	// Input redirection operator eg.sort < file1.txt
+	else if(strcmp(args[0], "sort") == 0){
+			char data[10][80],temp[32];
+			int i,j;
+			char name[10];
+			
+				FILE *fp = fopen("file1.TXT","r");
+				if(fp == NULL)
+				{
+					printf("file open error.\n");
+					return -1;
+				}
+				for(i = 0; !feof(fp); i++){
+					fscanf(fp, "%s", data[i]);
+					
+				}
+				printf("File input\n");
+				for(i=0; i < 8; i++){
+					printf("%s ", data[i]);
+				}
+				printf("\n");
+				fclose(fp);
+				int n = 8;
+				for(i=0;i<n-1;i++){
+					for(j=i+1;j<n;j++){
+						if(strcmp(data[i],data[j])>0){
+							strcpy(temp,data[i]);
+							strcpy(data[i],data[j]);
+							strcpy(data[j],temp);
+							/*
+							for(int t=0; t < 8; t++){
+								printf("%s ", data[i]);
+							}
+							*/
+						}
+					}
+				}
+				printf("File output\n");
+				for(i=0; i < 8; i++){
+					printf("%s ", data[i]);
+				}
+				printf("\n");
+				printf("finish\n");
+		
+	}
 	/* ADD MORE COMMANDS HERE */
 
 	// Update history- Shift all elements in the history up one in the array
