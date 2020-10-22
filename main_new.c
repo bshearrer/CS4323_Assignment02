@@ -125,7 +125,7 @@ int processCommand(char input[], char *args[], int *inBackground) {
 			char data[10][80],temp[32];
 			int i,j;
 			char name[10];
-			
+
 				FILE *fp = fopen("file1.TXT","r");
 				if(fp == NULL)
 				{
@@ -134,7 +134,7 @@ int processCommand(char input[], char *args[], int *inBackground) {
 				}
 				for(i = 0; !feof(fp); i++){
 					fscanf(fp, "%s", data[i]);
-					
+
 				}
 				printf("File input\n");
 				for(i=0; i < 8; i++){
@@ -163,8 +163,52 @@ int processCommand(char input[], char *args[], int *inBackground) {
 				}
 				printf("\n");
 				printf("finish\n");
-		
+
 	}
+
+	else if(strcmp(args[0], "less") == 0){
+		FILE *fp;
+		int num = 0;
+		char *arrLines[100];
+		char line[50];
+		int i = 0;
+
+		//open file
+		fp = fopen(args[1], "r");
+		if(fp == NULL) {
+			printf("Cannot open file \n");
+		}
+
+		//read file contents
+		while(fgets(line, sizeof line, fp) != NULL){
+			printf("%s", line);
+		}
+		fclose(fp);
+		return 0;
+	}
+
+	else if(strcmp(args[0], "more") == 0){
+		FILE *fp;
+		int num = 0;
+		char *arrLines[100];
+		char line[50];
+		int i = 0;
+
+		//open file
+		fp = fopen(args[1], "r");
+		if(fp == NULL) {
+			printf("Cannot open file \n");
+		}
+
+		//read file contents
+		while(fgets(line, sizeof line, fp) != NULL){
+			printf("%s", line);
+		}
+		fclose(fp);
+		return 0;
+	}
+
+
 	/* ADD MORE COMMANDS HERE */
 
 	// Update history- Shift all elements in the history up one in the array
