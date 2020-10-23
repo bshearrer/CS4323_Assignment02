@@ -208,6 +208,51 @@ int processCommand(char input[], char *args[], int *inBackground) {
 		return 0;
 	}
 
+	//cat test1 > test2
+	// cat test1 >> test2
+		for(int i = 1; args[i] != NULL; i++){
+			char c;
+			if(args[i][0] == '>' && args[i][1] != '>') {
+				FILE *fp1 = fopen(args[i-1],"r");
+				if(fp1 == NULL)
+					{
+						printf("file1 open error.\n");
+						return -1;
+					}
+				FILE *fp2 = fopen(args[i+1],"w");
+				if(fp2 == NULL)
+					{
+						printf("file2 open error.\n");
+						return -1;
+					}
+				while ((c = fgetc(fp1)) != EOF)
+				{	
+					//printf("reading.\n");
+					fputc(c,fp2);
+					
+				}
+				fclose(fp1); 
+				fclose(fp2); 
+
+			}
+			if(args[i][0] == '>' && args[i][1] == '>') {
+				FILE *fp3 = fopen(args[i-1],"r");
+				if(fp3 == NULL)
+					{
+						printf("file open error.\n");
+						return -1;
+					}
+				FILE *fp4 = fopen(args[i+1],"a+");
+				while ((c = fgetc(fp3)) != EOF)
+				{
+					fputc(c,fp4);
+				}
+				fclose(fp3); 
+				fclose(fp4); 
+
+			}
+			
+		}
 
 	/* ADD MORE COMMANDS HERE */
 
