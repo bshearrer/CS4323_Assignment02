@@ -5,23 +5,27 @@
 # include <stdio.h>
 # include <string.h>
 # include <unistd.h>
+# include <sys/types.h>
+# include <sys/wait.h>
+
 
 # define MAX_COMMAND_LENGTH 100
 # define MAX_HISTORY_LENGTH 20
 
-/* TODO: inBackground is a flag for whether parent process should wait for child or not- */
-/* inBackground == 1 means parent will NOT wait (in background), inBackground == 0       */
-/* means parent WILL wait (in foreground)- It is passed as a pointer so it can be        */
-/* changed within processCommand depending on the syntax of the command (not done yet)   */
-
+// Set up arrays to hold the current history and tasks in background
 int histCount = 0;
 char history[MAX_HISTORY_LENGTH][MAX_COMMAND_LENGTH];
+
+int backgroundCount = 0;
+char background[MAX_HISTORY_LENGTH][MAX_COMMAND_LENGTH];
 
 // Function for reading in and processing commands given to shell
 int processCommand(char input[], char *args[], int *inBackground) {
 
 	// Read the command entered into input and log the number of bytes read in
 	int bytesRead = read(STDIN_FILENO, input, MAX_COMMAND_LENGTH);
+	
+	int toReturn = 0;
 
 	if (bytesRead == 0) {
 		// Nothing to read: exit
@@ -79,6 +83,17 @@ int processCommand(char input[], char *args[], int *inBackground) {
 				// Indicate the end of the args array by inserting null string at next index
 				args[argsIndex] = NULL;
 				break;
+				
+			// "!bg" flag is used to indicate that command should be run in background
+			// If this is found, set inBackground flag, and don't add this argument to args index
+			case '!':
+				if ((i+ 2) < bytesRead && input[i + 1] == 'b' && input[i + 2] == 'g') {
+					*inBackground = 1;
+					startIndex = -1;
+					i = i + 2;
+					toReturn = 2;
+				}
+				break;
 
 			// Default case: any other character is treated as part of a command or argument
 			default:
@@ -105,6 +120,7 @@ int processCommand(char input[], char *args[], int *inBackground) {
 			printf("Error changing to this directory.\n");
 			exit (-1);
 		}
+		toReturn++;
 	}
 
 	// history
@@ -120,16 +136,33 @@ int processCommand(char input[], char *args[], int *inBackground) {
 			printf("%d. %s\n", i + 1, history[i]);
 		}
 	}
+	
+	// background
+	else if (strcmp(args[0], "background") == 0) {
+
+		if (backgroundCount == 0) {
+			printf("No jobs in background.\n");
+			return -1;
+		}
+
+		// Print out background tasks
+		int i = 0;
+		while (i < backgroundCount) {
+			printf("%d. %s\n", i + 1, background[i]);
+			i++;
+		}
+		toReturn++;		
+	}
 	// Input redirection operator eg.sort < file1.txt
 	else if(strcmp(args[0], "sort") == 0){
 			char data[10][80],temp[32];
 			int i,j;
 			char name[10];
 
-				FILE *fp = fopen("file1.TXT","r");
+				FILE *fp = fopen(args[1],"r");
 				if(fp == NULL)
 				{
-					printf("file open error.\n");
+					printf("Cannot open file  \"%s\"\n", args[1]);
 					return -1;
 				}
 				for(i = 0; !feof(fp); i++){
@@ -163,7 +196,7 @@ int processCommand(char input[], char *args[], int *inBackground) {
 				}
 				printf("\n");
 				printf("finish\n");
-
+				toReturn++;
 	}
 
 	else if(strcmp(args[0], "less") == 0){
@@ -184,7 +217,7 @@ int processCommand(char input[], char *args[], int *inBackground) {
 			printf("%s", line);
 		}
 		fclose(fp);
-		return 0;
+		toReturn++;
 	}
 
 	else if(strcmp(args[0], "more") == 0){
@@ -205,9 +238,12 @@ int processCommand(char input[], char *args[], int *inBackground) {
 			printf("%s", line);
 		}
 		fclose(fp);
-		return 0;
+		toReturn++;
 	}
-
+	
+		/* ADD MORE COMMANDS HERE */
+		
+		
 	//cat test1 > test2
 	// cat test1 >> test2
 		for(int i = 1; args[i] != NULL; i++){
@@ -229,7 +265,7 @@ int processCommand(char input[], char *args[], int *inBackground) {
 				{	
 					//printf("reading.\n");
 					fputc(c,fp2);
-					
+
 				}
 				fclose(fp1); 
 				fclose(fp2); 
@@ -251,10 +287,8 @@ int processCommand(char input[], char *args[], int *inBackground) {
 				fclose(fp4); 
 
 			}
-			
-		}
 
-	/* ADD MORE COMMANDS HERE */
+		}
 
 	// Update history- Shift all elements in the history up one in the array
 	for (int i = MAX_HISTORY_LENGTH - 1; i > 0; i--) {
@@ -274,8 +308,52 @@ int processCommand(char input[], char *args[], int *inBackground) {
 	if (histCount >= MAX_HISTORY_LENGTH) {
 		histCount = MAX_HISTORY_LENGTH;
 	}
-	return 0;
+	
+	//If in background, add to running list
+	if (*inBackground == 1) {
+		backgroundCount++;
+		for (int i = MAX_HISTORY_LENGTH - 1; i > 0; i--) {
+			strcpy(background[i], background[i - 1]);
+		}
+
+		// Add input to background[0]
+		strcpy(background[0], input);
+
+		int i = 1;
+		while (args[i] != NULL) {
+			strcat(background[0], " ");
+			strcat(background[0], args[i]);
+			i++;
+		}
+		if (backgroundCount >= MAX_HISTORY_LENGTH) {
+			backgroundCount= MAX_HISTORY_LENGTH;
+		}
+	}
+	return toReturn;
 }
+
+// Remove a task from background list when it finishes
+void updateBackground(char *args[]) {
+	char input[] = "";
+	strcat(input, args[0]);
+	int i = 1;
+	while (args[i] != NULL) {
+		strcat(input, " ");
+		strcat(input, args[i]);
+		i++;
+	}
+	printf("\n%s\n", input);
+	for (int i = 0; i < MAX_HISTORY_LENGTH; i++) {
+		if (strcmp(background[i], input) == 0) {
+			for (int j = i; j < MAX_HISTORY_LENGTH; j++)  {
+				strcpy(background[i + 1], background[i]);
+			}
+			backgroundCount--;
+			break;
+		}
+	}
+}
+	
 
 /* Main function */
 int main(void) {
@@ -302,9 +380,9 @@ int main(void) {
 	// Start main loop of program
 	while (1) {
 
+		//Default setting is operations in foreground
 		inBackground = 0;
-		//Print out directory information- include ~ if currentDir == homeDir
-		/* NOTE- Figure out how to get username- placeholder here */
+		
 		getcwd(currentDir, sizeof(currentDir));
 		if (strcmp(currentDir, homeDir) == 0) {
 			printf("%s@CS432shell:%s~$ ", userName, currentDir);
@@ -316,8 +394,13 @@ int main(void) {
 		}
 
 		// Get the next command entered and fork a process for it
+		// processReturn 0- exec command in foreground
+		// processReturn 1- custom command (non-exec) in foreground
+		// processReturn 2- exec command in background
+		
+		int processReturn = processCommand(input, args, &inBackground);
 
-		if (processCommand(input, args, &inBackground) >= 0) {
+		if (processReturn == 0 || processReturn == 2)  {
 
 			pid = fork();
 
@@ -331,7 +414,7 @@ int main(void) {
 
 				// Execute command stored in args[0]- catch errors
 				if (execvp(args[0], args) == -1) {
-					printf("Command not recognized");
+					printf("Command not recognized\n");
 				}
 			}
 
@@ -342,6 +425,19 @@ int main(void) {
 				if (inBackground == 0) {
 					wait(NULL);
 				}
+				else {
+					// Check if child still running- if it isn't, run updateBackground to remove it
+					int status;
+					pid_t return_pid = waitpid(pid, &status, WNOHANG);
+					if (return_pid == -1) {
+					printf("Error with background task %s\n", args[0]);
+					}
+					else if (return_pid == pid) {
+						updateBackground(args);
+					}
+					
+				}
+					
 			}
 		}
 	}
