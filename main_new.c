@@ -155,14 +155,15 @@ int processCommand(char input[], char *args[], int *inBackground) {
 	}
 	// Input redirection operator eg.sort < file1.txt
 	else if(strcmp(args[0], "sort") == 0){
+		if(args[1][0] == '<'){
 			char data[10][80],temp[32];
 			int i,j;
 			char name[10];
 
-				FILE *fp = fopen(args[1],"r");
+				FILE *fp = fopen(args[2],"r");
 				if(fp == NULL)
 				{
-					printf("Cannot open file  \"%s\"\n", args[1]);
+					printf("Cannot open file  \"%s\"\n", args[2]);
 					return -1;
 				}
 				for(i = 0; !feof(fp); i++){
@@ -197,6 +198,7 @@ int processCommand(char input[], char *args[], int *inBackground) {
 				printf("\n");
 				printf("finish\n");
 				toReturn++;
+		}
 	}
 
 	else if(strcmp(args[0], "less") == 0){
@@ -289,6 +291,55 @@ int processCommand(char input[], char *args[], int *inBackground) {
 			}
 
 		}
+
+	//cat file1 | grep “apple” 
+	for(int i = 1; args[i] != NULL; i++){
+			//char data1[10];
+			//char a;
+			char *c;
+			char line[50];
+			
+			if(args[i][0] == '|'&& strcmp(args[i-2], "cat") == 0) {
+				FILE *fp1 = fopen(args[i-1],"r");
+				
+				if(fp1 == NULL)
+				{
+					printf("Cannot open file  \"%s\"\n", args[1]);
+					return -1;
+				}
+				
+				
+				if(strcmp(args[i+1], "grep") == 0){
+					char *p =args[i+2];
+					int j = 0;
+					for(int k=0;k<20;k++){
+						if(args[i+2][k] != '"'){
+							args[i+2][j++]=args[i+2][k];
+						}
+					}
+					while(fgets(line, sizeof line, fp1) != NULL){
+						c = line;
+						//printf("%s", p);
+						if(strstr(c,p)){
+							printf("get_string_value : %s\n", line);
+						}
+
+					}
+					
+					
+					
+				}
+				
+			}
+				
+				
+	}
+			
+
+			
+
+		
+	
 
 	// Update history- Shift all elements in the history up one in the array
 	for (int i = MAX_HISTORY_LENGTH - 1; i > 0; i--) {
