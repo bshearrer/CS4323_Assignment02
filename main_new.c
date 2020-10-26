@@ -1,5 +1,7 @@
 // CS 4323 Mini Group Project
-// Group E - Tyler Krebs, Cindy Liu, Lee Repa, Brandon Shearrer
+// Group E
+// Members: Tyler Krebs (tyler.krebs@okstate.edu), Cindy Liu(cindy.liu@okstate.edu)
+// 			Lee Repa(lrepa@okstate.edu), Brandon Shearrer (bshearr@okstate.du)
 
 # include <stdlib.h>
 # include <stdio.h>
