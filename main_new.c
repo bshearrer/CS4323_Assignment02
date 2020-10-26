@@ -406,7 +406,7 @@ int main(void) {
 
 			// If pid < 0, fork failed
 			if (pid < 0) {
-				printf("Fork failed.\n");
+				printf("Error: Fork failed.\n");
 			}
 
 			// If pid == 0, we are in child process
@@ -414,7 +414,7 @@ int main(void) {
 
 				// Execute command stored in args[0]- catch errors
 				if (execvp(args[0], args) == -1) {
-					printf("Command not recognized\n");
+					printf("Unknown Command\n");
 				}
 			}
 
