@@ -84,15 +84,14 @@ int processCommand(char input[], char *args[], int *inBackground) {
 				args[argsIndex] = NULL;
 				break;
 				
-			// "!bg" flag is used to indicate that command should be run in background
+			// "&" flag is used to indicate that command should be run in background
 			// If this is found, set inBackground flag, and don't add this argument to args index
-			case '!':
-				if ((i+ 2) < bytesRead && input[i + 1] == 'b' && input[i + 2] == 'g') {
-					*inBackground = 1;
-					startIndex = -1;
-					i = i + 2;
-					toReturn = 2;
-				}
+			case '&':
+			
+				*inBackground = 1;
+				startIndex = -1;
+				toReturn = 2;
+					
 				break;
 
 			// Default case: any other character is treated as part of a command or argument
