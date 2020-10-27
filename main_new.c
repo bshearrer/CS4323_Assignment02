@@ -26,7 +26,7 @@ int processCommand(char input[], char *args[], int *inBackground) {
 
 	// Read the command entered into input and log the number of bytes read in
 	int bytesRead = read(STDIN_FILENO, input, MAX_COMMAND_LENGTH);
-	
+
 	int toReturn = 0;
 
 	if (bytesRead == 0) {
@@ -85,15 +85,15 @@ int processCommand(char input[], char *args[], int *inBackground) {
 				// Indicate the end of the args array by inserting null string at next index
 				args[argsIndex] = NULL;
 				break;
-				
+
 			// "&" flag is used to indicate that command should be run in background
 			// If this is found, set inBackground flag, and don't add this argument to args index
 			case '&':
-			
+
 				*inBackground = 1;
 				startIndex = -1;
 				toReturn = 2;
-					
+
 				break;
 
 			// Default case: any other character is treated as part of a command or argument
@@ -137,7 +137,7 @@ int processCommand(char input[], char *args[], int *inBackground) {
 			printf("%d. %s\n", i + 1, history[i]);
 		}
 	}
-	
+
 	// background
 	else if (strcmp(args[0], "background") == 0) {
 
@@ -152,7 +152,7 @@ int processCommand(char input[], char *args[], int *inBackground) {
 			printf("%d. %s\n", i + 1, background[i]);
 			i++;
 		}
-		toReturn++;		
+		toReturn++;
 	}
 	// Input redirection operator eg.sort < file1.txt
 	else if(strcmp(args[0], "sort") == 0){
@@ -217,7 +217,22 @@ int processCommand(char input[], char *args[], int *inBackground) {
 
 		//read file contents
 		while(fgets(line, sizeof line, fp) != NULL){
-			printf("%s", line);
+    	if(i < 12){
+      	printf("%s\n", line);
+    	}
+    	else if(i == 12){
+	    	printf("Press enter to continue...\n");
+	    	getchar();
+	    	printf("%s\n", line);
+    	}
+    	else{
+      	printf("%s", line);
+      	getchar();
+    	}
+    	i++;
+   	}
+
+
 		}
 		fclose(fp);
 		toReturn++;
@@ -238,15 +253,27 @@ int processCommand(char input[], char *args[], int *inBackground) {
 
 		//read file contents
 		while(fgets(line, sizeof line, fp) != NULL){
-			printf("%s", line);
-		}
+    	if(i < 12){
+      	printf("%s\n", line);
+    	}
+    	else if(i == 12){
+	    	printf("Press enter to continue...\n");
+	    	getchar();
+	    	printf("%s\n", line);
+    	}
+    	else{
+      	printf("%s", line);
+      	getchar();
+    	}
+    	i++;
+   	}
 		fclose(fp);
 		toReturn++;
 	}
-	
+
 		/* ADD MORE COMMANDS HERE */
-		
-		
+
+
 	//cat test1 > test2
 	// cat test1 >> test2
 		for(int i = 1; args[i] != NULL; i++){
@@ -265,13 +292,13 @@ int processCommand(char input[], char *args[], int *inBackground) {
 						return -1;
 					}
 				while ((c = fgetc(fp1)) != EOF)
-				{	
+				{
 					//printf("reading.\n");
 					fputc(c,fp2);
 
 				}
-				fclose(fp1); 
-				fclose(fp2); 
+				fclose(fp1);
+				fclose(fp2);
 
 			}
 			if(args[i][0] == '>' && args[i][1] == '>') {
@@ -286,30 +313,30 @@ int processCommand(char input[], char *args[], int *inBackground) {
 				{
 					fputc(c,fp4);
 				}
-				fclose(fp3); 
-				fclose(fp4); 
+				fclose(fp3);
+				fclose(fp4);
 
 			}
 
 		}
 
-	//cat file1 | grep “apple” 
+	//cat file1 | grep “apple”
 	for(int i = 1; args[i] != NULL; i++){
 			//char data1[10];
 			//char a;
 			char *c;
 			char line[50];
-			
+
 			if(args[i][0] == '|'&& strcmp(args[i-2], "cat") == 0) {
 				FILE *fp1 = fopen(args[i-1],"r");
-				
+
 				if(fp1 == NULL)
 				{
 					printf("Cannot open file  \"%s\"\n", args[1]);
 					return -1;
 				}
-				
-				
+
+
 				if(strcmp(args[i+1], "grep") == 0){
 					char *p =args[i+2];
 					int j = 0;
@@ -326,21 +353,21 @@ int processCommand(char input[], char *args[], int *inBackground) {
 						}
 
 					}
-					
-					
-					
+
+
+
 				}
-				
+
 			}
-				
-				
+
+
 	}
-			
 
-			
 
-		
-	
+
+
+
+
 
 	// Update history- Shift all elements in the history up one in the array
 	for (int i = MAX_HISTORY_LENGTH - 1; i > 0; i--) {
@@ -360,7 +387,7 @@ int processCommand(char input[], char *args[], int *inBackground) {
 	if (histCount >= MAX_HISTORY_LENGTH) {
 		histCount = MAX_HISTORY_LENGTH;
 	}
-	
+
 	//If in background, add to running list
 	if (*inBackground == 1) {
 		backgroundCount++;
@@ -405,7 +432,7 @@ void updateBackground(char *args[]) {
 		}
 	}
 }
-	
+
 
 /* Main function */
 int main(void) {
@@ -434,7 +461,7 @@ int main(void) {
 
 		//Default setting is operations in foreground
 		inBackground = 0;
-		
+
 		getcwd(currentDir, sizeof(currentDir));
 		if (strcmp(currentDir, homeDir) == 0) {
 			printf("%s@CS432shell:%s~$ ", userName, currentDir);
@@ -449,7 +476,7 @@ int main(void) {
 		// processReturn 0- exec command in foreground
 		// processReturn 1- custom command (non-exec) in foreground
 		// processReturn 2- exec command in background
-		
+
 		int processReturn = processCommand(input, args, &inBackground);
 
 		if (processReturn == 0 || processReturn == 2)  {
@@ -487,9 +514,9 @@ int main(void) {
 					else if (return_pid == pid) {
 						updateBackground(args);
 					}
-					
+
 				}
-					
+
 			}
 		}
 	}
