@@ -233,7 +233,7 @@ int processCommand(char input[], char *args[], int *inBackground) {
    	}
 
 
-		}
+		
 		fclose(fp);
 		toReturn++;
 	}
